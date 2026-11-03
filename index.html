@@ -147,7 +147,6 @@ mark{background:color-mix(in srgb,var(--motie) 30%,transparent);color:inherit;bo
   </header>
 
   <section aria-label="부처별 요약" style="display:flex;flex-direction:column;gap:10px">
-    <div class="share" id="share" aria-hidden="true"></div>
     <div class="tiles" id="tiles"></div>
   </section>
 
@@ -199,15 +198,13 @@ DATA.forEach(r=>r._h=hay(r));
 const MAX=Math.max(...DATA.map(r=>r.b));
 
 function tiles(){
-  const tot=DATA.reduce((a,r)=>a+r.b,0),tot26=DATA.reduce((a,r)=>a+r.a,0);
-  $('#share').innerHTML=DEPTS.map(d=>{const v=DATA.filter(r=>r.d===d.k).reduce((a,r)=>a+r.b,0);return `<span style="width:${v/tot*100}%;background:${d.c}" title="${d.k} ${(v/tot*100).toFixed(1)}%"></span>`}).join('');
   const t=(key,label,c,rows)=>{const b=rows.reduce((a,r)=>a+r.b,0),a=rows.reduce((x,r)=>x+r.a,0),n=rows.filter(r=>r.st==='신규').length;
     const d=b-a;return `<button class="tile" data-dept="${key}" aria-pressed="${S.dept===key}" style="--c:${c}">
       <span class="t-name">${label}<small>${rows.length}개 사업</small></span>
       <span class="t-val num">${fmt(b)}<u>${U()}</u></span>
       <span class="t-sub">'26 ${fmt(a)} → ${d>=0?'+':'△'}${fmt(Math.abs(d))} (${a?(d>=0?'+':'△')+Math.abs(d/a*100).toFixed(1)+'%':'-'}) · 신규 ${n}</span></button>`};
-  $('#tiles').innerHTML=t('','3개 부처 합계','var(--ink)',DATA)+DEPTS.map(d=>t(d.k,d.k,d.c,DATA.filter(r=>r.d===d.k))).join('');
-  $('#lede').textContent=`과기정통부·문체부·산업통상부의 AI 관련 세부사업 ${DATA.length}개. 2027년 정부안 합계 ${fmt(tot)}${U()} (2026년 ${fmt(tot26)}${U()}). 행을 누르면 내역사업과 산출근거가 열립니다.`;
+  $('#tiles').innerHTML=t('','선별 사업 전체','var(--ink)',DATA)+DEPTS.map(d=>t(d.k,d.k,d.c,DATA.filter(r=>r.d===d.k))).join('');
+  $('#lede').textContent=`과기정통부·문체부·산업통상부 2027년 정부 예산안 중 당사 사업과 연관성이 있어 보이는 세부사업 ${DATA.length}개를 선별해 정리했습니다. 부처 전체 AI 예산이 아니며, 아래 합계는 선별한 사업들의 합입니다. 행을 누르면 내역사업과 산출근거가 열립니다.`;
 }
 
 function filtered(){
@@ -258,9 +255,9 @@ function render(){
     const rs=rows.filter(r=>r.d===d.k);if(!rs.length)return '';
     const b=rs.reduce((a,r)=>a+r.b,0),a=rs.reduce((x,r)=>x+r.a,0);
     return `<section class="dept" style="--c:${d.c}">
-      <div class="dept-head"><h2>${d.full}</h2><span class="meta">${rs.length}개 사업 · 2027 정부안 <b class="num">${fmt(b)}</b>${U()} · 2026 ${fmt(a)}${U()}</span></div>
+      <div class="dept-head"><h2>${d.full}</h2><span class="meta">선별 ${rs.length}개 사업 합계 · 2027 정부안 <b class="num">${fmt(b)}</b>${U()} · 2026 ${fmt(a)}${U()}</span></div>
       <div class="tbl-wrap"><table class="main">
-        <thead><tr><th>세부사업</th><th>구분</th><th class="r">2026 예산</th><th class="r">2027 정부안</th><th class="r">증감</th><th class="r">내역</th>${DOWNLOADS?'<th class="r">원문</th>':''}</tr></thead>
+        <thead><tr><th>세부사업</th><th>구분</th><th class="r">2026 예산<br><small>(${U()})</small></th><th class="r">2027 정부안<br><small>(${U()})</small></th><th class="r">증감<br><small>(${U()})</small></th><th class="r">내역</th>${DOWNLOADS?'<th class="r">원문</th>':''}</tr></thead>
         <tbody>${rs.map(r=>{const id=r.code||r.n,o=S.open.has(id);
           return `<tr class="row${o?' open':''}" data-id="${esc(id)}" tabindex="0" aria-expanded="${o}">
             <td><div class="p-name"><span class="chev">›</span><span>${hl(r.n)}</span></div>

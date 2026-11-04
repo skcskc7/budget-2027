@@ -89,9 +89,9 @@ function load(){
 function prep(docs){
 const norm=s=>(s||'').replace(/\(R&D\)|\(R＆D\)/g,'').replace(/[\s·ㆍ․,\-()（）]/g,'').toLowerCase();
 const hd=h=>h.replace(/\s*\(20\d\d.*$/,'');
-const order={'과기정통부':0,'문체부':1,'산업통상부':2};
+const order={'과기정통부':0,'문체부':1,'산업통상부':2,'중기부':3};
 const out=docs.map(r=>{
-  const items=r.items.filter(x=>(x.b2025||0)+(x.b2026||0)+(x.b2027||0)>0).map(x=>({n:x.name,a:x.b2026||0,b:x.b2027||0}));
+  const items=r.items.filter(x=>(x.b2026||0)+(x.b2027||0)>0).map(x=>({n:x.name,a:x.b2026||0,b:x.b2027||0}));
   const match=(list,key)=>{const used=new Set();
     items.forEach(it=>{const k=norm(it.n);let j=list.findIndex((p,ix)=>!used.has(ix)&&(norm(key(p))===k));
       if(j<0)j=list.findIndex((p,ix)=>!used.has(ix)&&key(p)&&(norm(key(p)).includes(k)||k.includes(norm(key(p)))));
@@ -110,6 +110,11 @@ const out=docs.map(r=>{
 }
 
 const view=prep(load());
+// 브이씨텍 협업 후보 표시 (tools/selection.json)
+const selFile=path.join(ROOT,'tools','selection.json');
+const vc=fs.existsSync(selFile)?JSON.parse(fs.readFileSync(selFile,'utf8')).vctech||[]:[];
+for(const r of view)if(vc.includes(r.code))r.vc=1;
+for(const c of vc)if(!view.some(r=>r.code===c))console.warn('selection.json: 사업코드 '+c+' 없음');
 const tpl=fs.readFileSync(path.join(ROOT,'tools','template.html'),'utf8');
 const page=tpl.replace('/*__DATA__*/',()=>JSON.stringify(view).replace(/<\//g,'<\\/'));
 // --artifact <경로>: claude.ai 아티팩트용(문서 골격 없음, 다운로드 링크 숨김)

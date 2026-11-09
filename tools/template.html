@@ -40,7 +40,8 @@ header p{margin:0;color:var(--muted);font-size:13px}
 .view-switch button[aria-pressed="true"] span{background:color-mix(in srgb,var(--bg) 22%,transparent)}
 .view-switch button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:480px){.view-switch{align-self:stretch}.view-switch button{flex:1;padding:10px 12px;font-size:14px}}
-.star{flex:none;font-family:var(--f-num);font-size:12px;font-weight:600;color:var(--motie);background:color-mix(in srgb,var(--motie) 14%,transparent);border-radius:4px;padding:1px 6px;margin-top:1px;white-space:nowrap}
+.star{flex:none;font-size:13px;line-height:1.4;letter-spacing:1px;color:var(--motie);white-space:nowrap}
+.star s{text-decoration:none;color:var(--line)}
 .pill.dept{color:var(--surface);background:var(--c);border-color:var(--c)}
 .pill.vc{color:var(--vc);background:color-mix(in srgb,var(--vc) 12%,transparent);border-color:transparent}
 .tile.zero{opacity:.45}
@@ -235,8 +236,8 @@ function tiles(){
 function filtered(){
   let rows=scope().filter(r=>(!S.dept||r.d===S.dept)&&(!S.st||r.st===S.st)&&(!S.q||r._h.includes(S.q.toLowerCase())));
   const f={b:(x,y)=>y.b-x.b,d:(x,y)=>(y.b-y.a)-(x.b-x.a),dn:(x,y)=>(x.b-x.a)-(y.b-y.a),n:(x,y)=>x.n.localeCompare(y.n,'ko')}[S.sort];
-  // ★ 우선순위 사업을 먼저, 그 안에서는 정해진 순서대로
-  return rows.sort((x,y)=>(x.pr||1e9)-(y.pr||1e9)||f(x,y));
+  // 별이 많은 사업을 먼저, 같은 별 개수 안에서는 선택한 정렬 기준대로
+  return rows.sort((x,y)=>(y.pr||0)-(x.pr||0)||f(x,y));
 }
 
 function detail(r,c){
@@ -290,7 +291,7 @@ function render(){
         <thead><tr><th>세부사업</th><th>구분</th><th class="r">2026 예산<br><small>(${U()})</small></th><th class="r">2027 정부안<br><small>(${U()})</small></th><th class="r">증감<br><small>(${U()})</small></th><th class="r">내역</th>${DOWNLOADS?'<th class="r">원문</th>':''}</tr></thead>
         <tbody>${rs.map(r=>{const id=r.code||r.n,o=S.open.has(id),rd=DEPTS.find(x=>x.k===r.d);
           return `<tr class="row${o?' open':''}" data-id="${esc(id)}" tabindex="0" aria-expanded="${o}" style="--c:${rd.c}">
-            <td><div class="p-name"><span class="chev">›</span>${r.pr?`<span class="star" title="우선순위 ${r.pr}">★${r.pr}</span>`:''}<span>${hl(r.n)}</span></div>
+            <td><div class="p-name"><span class="chev">›</span>${r.pr?`<span class="star" title="우선순위 별 ${r.pr}개" aria-label="우선순위 별 ${r.pr}개">${'★'.repeat(r.pr)}<s>${'★'.repeat(Math.max(0,3-r.pr))}</s></span>`:''}<span>${hl(r.n)}</span></div>
               <div class="p-sub"><span class="code">${esc(r.code)}</span> · ${esc(r.prog)} › ${esc(r.unit)} · ${hl(r.exe)}</div></td>
             <td><div class="tags">${merged?`<span class="pill dept">${esc(r.d)}</span>`:''}<span class="pill ${r.st==='신규'?'new':'cont'}">${esc(r.st)}</span>${isRnd(r)?'<span class="pill rnd">R&amp;D</span>':''}${r.vc&&S.view==='all'?'<span class="pill vc">브이씨텍</span>':''}</div></td>
             <td class="r num">${fmt(r.a)}</td>

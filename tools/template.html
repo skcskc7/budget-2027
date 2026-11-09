@@ -158,8 +158,8 @@ mark{background:color-mix(in srgb,var(--motie) 30%,transparent);color:inherit;bo
 
   <section aria-label="부처별 요약" style="display:flex;flex-direction:column;gap:10px">
     <div class="view-switch" id="viewF" role="group" aria-label="과제 범위">
-      <button data-v="all" aria-pressed="true"><b>아이리 도전 과제</b><span id="cnt-all"></span></button>
-      <button data-v="vc" aria-pressed="false"><b>브이씨텍 협업 후보</b><span id="cnt-vc"></span></button>
+      <button data-v="vc" aria-pressed="true"><b>브이씨텍 협업 후보</b><span id="cnt-vc"></span></button>
+      <button data-v="all" aria-pressed="false"><b>AIRI</b><span id="cnt-all"></span></button>
     </div>
     <div class="tiles" id="tiles"></div>
   </section>
@@ -196,7 +196,7 @@ const DEPTS=[
   {k:'문체부',full:'문화체육관광부',c:'var(--mcst)'},
   {k:'산업통상부',full:'산업통상부',c:'var(--motie)'},
   {k:'중기부',full:'중소벤처기업부',c:'var(--mss)'}];
-const S={view:'all',dept:'',st:'',q:'',sort:'b',unit:'eok',open:new Set()};
+const S={view:'vc',dept:'',st:'',q:'',sort:'b',unit:'eok',open:new Set()};
 try{const v=JSON.parse(localStorage.getItem('budget-view')||'{}');if(v.unit)S.unit=v.unit;if(v.sort)S.sort=v.sort;if(v.view)S.view=v.view;}catch(e){}
 if(location.hash==='#vc')S.view='vc';else if(location.hash==='#all')S.view='all';
 const scope=()=>S.view==='vc'?DATA.filter(r=>r.vc):DATA;
@@ -224,8 +224,8 @@ function tiles(){
   const all=scope();
   $('#tiles').innerHTML=t('','전체','var(--ink)',all)+DEPTS.map(d=>t(d.k,d.k,d.c,all.filter(r=>r.d===d.k))).join('');
   $('#lede').textContent=S.view==='vc'
-    ?`아이리 도전 과제 ${DATA.length}개 중 브이씨텍과 협업해 볼 만한 세부사업 ${all.length}개입니다. 행을 누르면 내역사업과 산출근거가 열립니다.`
-    :`과기정통부·문체부·산업통상부·중기부 2027년 정부 예산안 중 당사 사업과 연관성이 있어 보이는 세부사업 ${DATA.length}개를 선별해 정리했습니다. 행을 누르면 내역사업과 산출근거가 열립니다.`;
+    ?`AIRI 선별 과제 ${DATA.length}개 중 브이씨텍과 협업해 볼 만한 세부사업 ${all.length}개입니다. 행을 누르면 내역사업과 산출근거가 열립니다.`
+    :`과기정통부·문체부·산업통상부·중기부 2027년 정부 예산안 중 AIRI 사업과 연관성이 있어 보이는 세부사업 ${DATA.length}개를 선별해 정리했습니다. 행을 누르면 내역사업과 산출근거가 열립니다.`;
   $('#cnt-all').textContent=DATA.length;$('#cnt-vc').textContent=DATA.filter(r=>r.vc).length;
   document.querySelectorAll('#viewF button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.view));
 }

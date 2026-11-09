@@ -41,6 +41,7 @@ header p{margin:0;color:var(--muted);font-size:13px}
 .view-switch button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:480px){.view-switch{align-self:stretch}.view-switch button{flex:1;padding:10px 12px;font-size:14px}}
 .star{flex:none;font-family:var(--f-num);font-size:12px;font-weight:600;color:var(--motie);background:color-mix(in srgb,var(--motie) 14%,transparent);border-radius:4px;padding:1px 6px;margin-top:1px;white-space:nowrap}
+.pill.dept{color:var(--surface);background:var(--c);border-color:var(--c)}
 .pill.vc{color:var(--vc);background:color-mix(in srgb,var(--vc) 12%,transparent);border-color:transparent}
 .tile.zero{opacity:.45}
 .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
@@ -276,23 +277,28 @@ function render(){
   try{localStorage.setItem('budget-view',JSON.stringify({unit:S.unit,sort:S.sort,view:S.view}));}catch(e){}
   tiles();
   const rows=filtered();
-  const html=DEPTS.filter(d=>!S.dept||d.k===S.dept).map(d=>{
-    const rs=rows.filter(r=>r.d===d.k);if(!rs.length)return '';
+  // 브이씨텍 보기는 부처 구분 없이 한 표(행마다 부처 표시), AIRI 보기는 부처별 표
+  const merged=S.view==='vc';
+  const groups=merged
+    ?[{full:'브이씨텍 협업 후보',c:'var(--vc)',rs:rows}]
+    :DEPTS.filter(d=>!S.dept||d.k===S.dept).map(d=>({...d,rs:rows.filter(r=>r.d===d.k)}));
+  const html=groups.map(d=>{
+    const rs=d.rs;if(!rs.length)return '';
     return `<section class="dept" style="--c:${d.c}">
       <div class="dept-head"><h2>${d.full}</h2><span class="meta">${rs.length}개 사업</span></div>
       <div class="tbl-wrap"><table class="main">
         <thead><tr><th>세부사업</th><th>구분</th><th class="r">2026 예산<br><small>(${U()})</small></th><th class="r">2027 정부안<br><small>(${U()})</small></th><th class="r">증감<br><small>(${U()})</small></th><th class="r">내역</th>${DOWNLOADS?'<th class="r">원문</th>':''}</tr></thead>
-        <tbody>${rs.map(r=>{const id=r.code||r.n,o=S.open.has(id);
-          return `<tr class="row${o?' open':''}" data-id="${esc(id)}" tabindex="0" aria-expanded="${o}">
+        <tbody>${rs.map(r=>{const id=r.code||r.n,o=S.open.has(id),rd=DEPTS.find(x=>x.k===r.d);
+          return `<tr class="row${o?' open':''}" data-id="${esc(id)}" tabindex="0" aria-expanded="${o}" style="--c:${rd.c}">
             <td><div class="p-name"><span class="chev">›</span>${r.pr?`<span class="star" title="우선순위 ${r.pr}">★${r.pr}</span>`:''}<span>${hl(r.n)}</span></div>
               <div class="p-sub"><span class="code">${esc(r.code)}</span> · ${esc(r.prog)} › ${esc(r.unit)} · ${hl(r.exe)}</div></td>
-            <td><div class="tags"><span class="pill ${r.st==='신규'?'new':'cont'}">${esc(r.st)}</span>${isRnd(r)?'<span class="pill rnd">R&amp;D</span>':''}${r.vc&&S.view==='all'?'<span class="pill vc">브이씨텍</span>':''}</div></td>
+            <td><div class="tags">${merged?`<span class="pill dept">${esc(r.d)}</span>`:''}<span class="pill ${r.st==='신규'?'new':'cont'}">${esc(r.st)}</span>${isRnd(r)?'<span class="pill rnd">R&amp;D</span>':''}${r.vc&&S.view==='all'?'<span class="pill vc">브이씨텍</span>':''}</div></td>
             <td class="r num">${fmt(r.a)}</td>
             <td class="r"><div class="val num">${fmt(r.b)}</div><div class="bar"><i style="width:${r.b/MAX*100}%"></i></div></td>
             <td class="r">${delta(r.a,r.b)}</td>
             <td class="r num">${r.items.filter(i=>i.b).length}</td>
             ${DOWNLOADS?`<td class="r">${dlLink(r,'dl-ico','HWPX')}</td>`:''}</tr>
-            ${o?`<tr class="detail"><td colspan="${DOWNLOADS?7:6}">${detail(r,d.c)}</td></tr>`:''}`}).join('')}</tbody>
+            ${o?`<tr class="detail"><td colspan="${DOWNLOADS?7:6}">${detail(r,rd.c)}</td></tr>`:''}`}).join('')}</tbody>
       </table></div></section>`}).join('');
   $('#list').innerHTML=html||`<div class="empty">조건에 맞는 사업이 없습니다. 검색어나 필터를 바꿔 보세요.</div>`;
   $('#toggleAll').textContent=rows.length&&rows.every(r=>S.open.has(r.code||r.n))?'모두 접기':'모두 펼치기';

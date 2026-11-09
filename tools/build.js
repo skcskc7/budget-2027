@@ -112,9 +112,13 @@ const out=docs.map(r=>{
 const view=prep(load());
 // 브이씨텍 협업 후보 표시 (tools/selection.json)
 const selFile=path.join(ROOT,'tools','selection.json');
-const vc=fs.existsSync(selFile)?JSON.parse(fs.readFileSync(selFile,'utf8')).vctech||[]:[];
+const sel=fs.existsSync(selFile)?JSON.parse(fs.readFileSync(selFile,'utf8')):{};
+const vc=sel.vctech||[];
 for(const r of view)if(vc.includes(r.code))r.vc=1;
 for(const c of vc)if(!view.some(r=>r.code===c))console.warn('selection.json: 사업코드 '+c+' 없음');
+// 부처별 우선순위(★): 적힌 순서가 순위
+for(const [dept,codes] of Object.entries(sel.priority||{}))codes.forEach((c,ix)=>{
+  const r=view.find(r=>r.code===c&&r.d===dept);if(r)r.pr=ix+1;else console.warn('selection.json: '+dept+' 우선순위 코드 '+c+' 없음');});
 const tpl=fs.readFileSync(path.join(ROOT,'tools','template.html'),'utf8');
 const page=tpl.replace('/*__DATA__*/',()=>JSON.stringify(view).replace(/<\//g,'<\\/'));
 // --artifact <경로>: claude.ai 아티팩트용(문서 골격 없음, 다운로드 링크 숨김)

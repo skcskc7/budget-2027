@@ -79,7 +79,7 @@ table{border-collapse:collapse;width:100%}
 .main th{font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
 .main th.r,.main td.r{text-align:right}
 .main td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-.main tr.row{cursor:pointer}
+.main tr.row{cursor:pointer;scroll-margin-top:80px}
 .main tr.row:hover td{background:color-mix(in srgb,var(--sunk) 60%,transparent)}
 .main tr.row.open td{background:var(--sunk);border-bottom-color:transparent}
 .main tr:last-child td{border-bottom:0}
@@ -201,7 +201,13 @@ const DEPTS=[
   {k:'중기부',full:'중소벤처기업부',c:'var(--mss)'}];
 const S={view:'vc',dept:'',st:'',q:'',sort:'b',unit:'eok',open:new Set()};
 try{const v=JSON.parse(localStorage.getItem('budget-view')||'{}');if(v.unit)S.unit=v.unit;if(v.sort)S.sort=v.sort;if(v.view)S.view=v.view;}catch(e){}
-if(location.hash==='#vc')S.view='vc';else if(location.hash==='#all')S.view='all';
+// 주소 바로가기: #vc, #all, #p-<사업코드>(그 과제를 펼쳐서 보여줌)
+let jumpTo=null;
+function readHash(){const h=decodeURIComponent(location.hash.slice(1));
+  if(h==='vc')S.view='vc';else if(h==='all')S.view='all';
+  else if(h.startsWith('p-')){const r=DATA.find(x=>x.code===h.slice(2));
+    if(r){S.view=r.vc?'vc':'all';S.dept='';S.st='';S.q='';S.open.add(r.code);jumpTo=r.code;}}}
+readHash();
 const scope=()=>S.view==='vc'?DATA.filter(r=>r.vc):DATA;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -321,5 +327,9 @@ const toggle=tr=>{const id=tr.dataset.id;S.open.has(id)?S.open.delete(id):S.open
 $('#list').addEventListener('click',e=>{if(e.target.closest('.detail')||e.target.closest('a'))return;const tr=e.target.closest('tr.row');tr&&toggle(tr);});
 $('#list').addEventListener('keydown',e=>{const tr=e.target.closest('tr.row');if(tr&&(e.key==='Enter'||e.key===' ')){e.preventDefault();toggle(tr);}});
 $('#foot').innerHTML=`출처: 각 부처 「2027년도 세출 세부사업별 사업설명자료(정부 예산안)」 ${DATA.length}건. 금액은 2026년 본예산(기금은 계획액)과 2027년 정부안 기준이며, 원문 단위는 백만원입니다. 증감 표기는 예산서 관례를 따르며 △는 감소(마이너스)를 뜻합니다. 사업기간·산출근거 등 문구는 원문 그대로 옮겼습니다.${DOWNLOADS?' 각 사업의 원문 HWPX는 표의 ‘원문’ 열에서 내려받을 수 있습니다.':''}`;
+function jump(){if(!jumpTo)return;const n=document.querySelector(`tr.row[data-id="${CSS.escape(jumpTo)}"]`);jumpTo=null;
+  if(n){n.scrollIntoView({block:'start'});n.focus({preventScroll:true});}}
+window.addEventListener('hashchange',()=>{readHash();$('#q').value='';render();jump();});
 render();
+jump();
 </script>
